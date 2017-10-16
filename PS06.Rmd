@@ -20,19 +20,15 @@ set.seed(76)
 
 # Load packages
 library(tidyverse)
+library(mosaic)
 library(broom)
 library(knitr)
 ```
 
 
-
-
-
 # Collaboration
 
 Please indicate who you collaborated with on this assignment: 
-
-
 
 
 
@@ -96,6 +92,20 @@ n_sample <- 10000
 # Computation
 
 ```{r}
+set.seed(1)
+data1 <- do(n_sample)*(predict(lm(y~x, data=generate_sample(f, n, sigma)), newdata=data.frame(x=c(x0))))
+head(data1)
+
+f(x0)
+
+MSE <- mean((f(x0) - data1)^2)
+
+
+variance <- var(data1)
+
+
+bias.sq <- ((f(x0) - mean(data1$X1))^2)
+
 
 ```
 
@@ -116,6 +126,12 @@ output tables comparing:
 where `sum = bias_squared + var + irreducible`. You can created cleanly formatted tables like the one above by piping a data frame into `knitr::kable(digits=4)`.
 
 
+```{r}
+newdata <- data.frame(MSE= MSE, bias_squared= bias.sq, var= variance, irreducible= MSE - (bias.sq + variance), sum = bias.sq + variance)
+colnames(newdata) <- c("MSE", "bias_squared", "var", "irreducible", "sum")
+
+head(knitr::kable(newdata, digits = 4))
+```
 
 
 # Analysis
@@ -131,6 +147,9 @@ $x$ in this example, and not just for $$\mbox{MSE}\left[\widehat{f}(x_0)\right]
 
 **Answers**:
 
-1.
-1.
-1.
+1. One possible sanity check for these results is to see if bias and variance are inversely related, as discussed in LEcture 2.7.
+
+1. In order to do this, you would have to calculate the bias squared and viriance slightly differently, accounting for all the points in the model, as opposed to just the single point of interest.  Then, as we did for the single point of interest, you would add the values for bias squared and variance in order to get the MSE.
+
+1. For predicting one point of interest, I would do the first method, where $$\mbox{MSE}\left[\widehat{f}(x_0)\right]
+= \mbox{MSE}\left[\widehat{f}(0.95)\right]$$ because the value will likely have less irreducible error because it did not account for the values of other points.
