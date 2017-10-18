@@ -94,18 +94,18 @@ n_sample <- 10000
 ```{r}
 set.seed(1)
 data1 <- do(n_sample)*(predict(lm(y~x, data=generate_sample(f, n, sigma)), newdata=data.frame(x=c(x0))))
-head(data1)
 
-f(x0)
+newdata <- generate_sample(f,n,sigma)
+y_hat2 <- (predict(smooth.spline(x=newdata$x, y=newdata$y, df = 99), newdata=data.frame(x=.95)))
 
-MSE <- mean((f(x0) - data1)^2)
+MSE1 <- mean((f(x0) - data1)^2)
+MSE2 <- mean((f(x0) - y_hat2$y)^2)
 
+variance1 <- var(data1)
+variance2 <- var(y_hat2$y)
 
-variance <- var(data1)
-
-
-bias.sq <- ((f(x0) - mean(data1$X1))^2)
-
+bias.sq1 <- ((f(x0) - mean(data1$X1))^2)
+bias.sq2 <- ((f(x0) - mean(y_hat2$y))^2)
 
 ```
 
@@ -127,10 +127,14 @@ where `sum = bias_squared + var + irreducible`. You can created cleanly formatte
 
 
 ```{r}
-newdata <- data.frame(MSE= MSE, bias_squared= bias.sq, var= variance, irreducible= MSE - (bias.sq + variance), sum = bias.sq + variance)
+newdata <- data.frame(MSE= MSE1, bias_squared= bias.sq1, var= variance1, irreducible= MSE1 - (bias.sq1 + variance1), sum = bias.sq1 + variance1)
 colnames(newdata) <- c("MSE", "bias_squared", "var", "irreducible", "sum")
-
 head(knitr::kable(newdata, digits = 4))
+
+newdata2 <- data.frame(MSE= MSE2, bias_squared= bias.sq2, var= variance2, irreducible= MSE2 - (bias.sq2 + variance2), sum = bias.sq2 + variance2)
+colnames(newdata) <- c("MSE", "bias_squared", "var", "irreducible", "sum")
+head(knitr::kable(newdata2, digits = 4))
+
 ```
 
 
@@ -151,5 +155,4 @@ $x$ in this example, and not just for $$\mbox{MSE}\left[\widehat{f}(x_0)\right]
 
 1. In order to do this, you would have to calculate the bias squared and viriance slightly differently, accounting for all the points in the model, as opposed to just the single point of interest.  Then, as we did for the single point of interest, you would add the values for bias squared and variance in order to get the MSE.
 
-1. For predicting one point of interest, I would do the first method, where $$\mbox{MSE}\left[\widehat{f}(x_0)\right]
-= \mbox{MSE}\left[\widehat{f}(0.95)\right]$$ because the value will likely have less irreducible error because it did not account for the values of other points.
+1. For predicting one point of interest, I would do the first method, where you predict using the linear model.  This is because in this method, there is less bias since the model is not overfit to the data as it is in the splines model where df=99.  There is more variance in the linerar model, but since the model isn't overfit to the data, it is a better model overall.
